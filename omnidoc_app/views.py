@@ -8,7 +8,6 @@ from omnidoc_app.models import Patient
 def main_view(request):
     return render(request, 'main.html')  
 
-from django.http import JsonResponse
 from .voice_control.voice_to_wav import get_voice_to_wav
 from .voice_control.wav_interpreter import transcribe_audio
 import os
@@ -16,9 +15,9 @@ import os
 def start_recording(request):
     if request.method == 'POST':
         # Define the file paths
-        wav_file = "data/output.wav"
-        output_file = "data/output_transcription.txt"
-        output_json_file = "data/output_transcription.json"
+        wav_file = "./output.wav"
+        output_file = "./output_transcription.txt"
+        output_json_file = "./output_transcription.json"
 
         # Start recording audio and save to file
         get_voice_to_wav(wav_file, silence_duration=1.5)
