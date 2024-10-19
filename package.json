@@ -1,0 +1,18 @@
+{
+  "name": "omnidoc",
+  "version": "1.0.0",
+  "description": "An omnimodal AI assistant to streamline the diagnosis of generic illness symptoms.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tailwindcss -i ./omnidoc_app/static/css/styles.css -o ./omnidoc_app/static/css/tailwind.css --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.14"
+  }
+}
