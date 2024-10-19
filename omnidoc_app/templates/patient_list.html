@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Files - OmniDoc</title>
+    {% load static %}
+    <link href="{% static 'css/tailwind.css' %}" rel="stylesheet">
+</head>
+<body class="bg-black text-blue-500 flex items-center justify-center min-h-screen">
+    <div class="w-full max-w-3xl bg-gray-900 p-8 rounded-lg shadow-lg">
+        <h1 class="text-3xl font-bold text-center mb-6">Patient Files</h1>
+        <p class="text-gray-400 text-center mb-6">Click on a patient to view details</p>
+
+        <!-- Wrapper with space-y-8 applied to create space between records -->
+        <div class="space-y-8">
+            <!-- Loop through the patients and create a block for each -->
+            {% for patient in patients %}
+            <div class="bg-gray-800 p-6 rounded-lg shadow-md hover:bg-gray-700 hover:text-blue-300 transition duration-300 ease-in-out transform hover:scale-105">
+                <a href="" class="block rounded-lg p-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <div class="text-2xl font-semibold text-blue-400">{{ patient.first_name }} {{ patient.last_name }}</div>
+                            <div class="font-semibold text-gray-400">{{ patient.gender }}</div>
+                            <div class="font-semibold text-gray-400">{{ patient.email }}</div>
+                        </div>
+                        <div class="text-sm text-gray-400">DOB: {{ patient.dob }}</div>
+                    </div>
+                </a>
+            </div>
+            {% empty %}
+            <p class="text-gray-400 text-center">No patients found.</p>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

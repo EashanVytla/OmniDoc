@@ -15,13 +15,15 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from omnidoc_app.views import main_view  # Import your view
 
 urlpatterns = [
     path('admin/', admin.site.urls),  # Admin path
     path('', main_view, name='home'),  # Root URL now points to main_view
     path('main/', main_view, name='main'),  # Optional, if you want '/main/' to also load main_view
+
+    path('', include('omnidoc_app.urls')),
 ]
 
 
