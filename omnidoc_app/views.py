@@ -8,15 +8,35 @@ from omnidoc_app.models import Patient
 def main_view(request):
     return render(request, 'main.html')  
 
-def run_python_script(request):
+from django.http import JsonResponse
+from .voice_control.voice_to_wav import get_voice_to_wav
+from .voice_control.wav_interpreter import transcribe_audio
+import os
+
+def start_recording(request):
     if request.method == 'POST':
-        # Run your Python script using subprocess or any other method
-        try:
-            result = subprocess.run(['python3', 'path_to_your_script.py'], capture_output=True, text=True)
-            return JsonResponse({'output': result.stdout})
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
-    return JsonResponse({'error': 'Invalid request'}, status=400)
+        # Define the file paths
+        wav_file = "data/output.wav"
+        output_file = "data/output_transcription.txt"
+        output_json_file = "data/output_transcription.json"
+
+        # Start recording audio and save to file
+        get_voice_to_wav(wav_file, silence_duration=1.5)
+
+        # Transcribe the audio
+        openai_key = os.getenv('OPENAI_API_KEY')
+        transcribed_text = transcribe_audio(
+            wav_file,
+            openai_key,
+            output_file,
+            output_json_file
+        )
+
+        # Return the transcription as a response
+        return JsonResponse({'transcription': transcribed_text})
+
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
+
 
 
 def doctor_patient_list_view(request):
