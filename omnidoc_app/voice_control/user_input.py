@@ -11,12 +11,12 @@ openai_key = os.getenv('OPENAI_API_KEY')
 
 print(openai_key)
 
-wav_file = "data/output.wav"
+wav_file = "output.wav"
 
 get_voice_to_wav(wav_file, silence_duration=1.5)
 
-output_file = "data/output_transcription.txt"
-output_json_file = "data/output_transcription.json"
+output_file = "output_transcription.txt"
+output_json_file = "output_transcription.json"
 
 transcribed_text = transcribe_audio(
     wav_file, 
