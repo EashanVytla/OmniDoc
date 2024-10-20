@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Session - OmniDoc</title>
+    {% load static %}
+    <link href="{% static 'css/tailwind.css' %}" rel="stylesheet">
+</head>
+<body class="bg-black text-blue-500 flex items-center justify-center min-h-screen">
+    <div class="w-full max-w-3xl bg-gray-900 p-8 rounded-lg shadow-lg">
+        <h1 class="text-3xl font-bold text-center mb-6">Patient Session</h1>
+
+        <div class="bg-gray-800 p-6 rounded-lg shadow-md">
+            <!-- Patient's Information -->
+            <div class="mb-4">
+                <div class="text-2xl font-semibold text-blue-400">{{ session.patient.first_name }} {{ session.patient.last_name }}</div>
+                <div class="font-semibold text-gray-400">Session ID: {{ session.id }}</div>
+                <div class="font-semibold text-gray-400">Created on: {{ session.created_at|date:"M d, Y" }}</div>
+            </div>
+
+            <!-- If doctor has reviewed the session -->
+            {% if session.doctor_reviewed %}
+            <div class="bg-gray-700 p-4 rounded-lg mb-6">
+                <p class="text-blue-400 font-semibold">Report goes here</p>
+            </div>
+
+            <!-- If doctor has not yet reviewed the session -->
+            {% else %}
+            <!-- JSON Schema Display -->
+            <div class="bg-gray-700 p-4 rounded-lg mb-6">
+                <h2 class="text-xl font-semibold text-blue-300 mb-4">Session Data</h2>
+
+                <div class="bg-gray-900 p-4 rounded-md overflow-x-auto">
+                    <h3 class="text-lg text-blue-400 font-semibold">Patient Info:</h3>
+                    <p><strong>Name:</strong> {{ session.session_data.patient_info.name }}</p>
+                    <p><strong>Age:</strong> {{ session.session_data.patient_info.age }}</p>
+                    <p><strong>Gender:</strong> {{ session.session_data.patient_info.gender }}</p>
+                    <p><strong>Date of Visit:</strong> {{ session.session_data.patient_info.date_of_visit }}</p>
+                    <p><strong>Primary Complaint:</strong> {{ session.session_data.patient_info.primary_complaint }}</p>
+
+                    <h3 class="text-lg text-blue-400 font-semibold mt-4">Allergies:</h3>
+                    <p>{{ session.session_data.allergies }}</p>
+
+                    <h3 class="text-lg text-blue-400 font-semibold mt-4">Medications:</h3>
+                    <ul class="list-disc pl-5 text-gray-300">
+                        {% for med in session.session_data.medications %}
+                        <li><strong>{{ med.name }}</strong> - {{ med.dosage }} (Reason: {{ med.usage_reason }})</li>
+                        {% endfor %}
+                    </ul>
+
+                    <h3 class="text-lg text-blue-400 font-semibold mt-4">Medical History:</h3>
+                    <p><strong>Immunizations:</strong></p>
+                    <ul class="list-disc pl-5 text-gray-300">
+                        {% for immunization in session.session_data.medical_history.immunizations %}
+                        <li>{{ immunization }}</li>
+                        {% endfor %}
+                    </ul>
+                    <p><strong>Past Conditions:</strong></p>
+                    <ul class="list-disc pl-5 text-gray-300">
+                        {% for condition in session.session_data.medical_history.past_conditions %}
+                        <li>{{ condition }}</li>
+                        {% endfor %}
+                    </ul>
+
+                    <h3 class="text-lg text-blue-400 font-semibold mt-4">Preliminary Assessment:</h3>
+                    <p><strong>Primary Symptom:</strong> {{ session.session_data.preliminary_assessment.primary_symptom }}</p>
+
+                    <h3 class="text-lg text-blue-400 font-semibold mt-4">Possible Diagnoses:</h3>
+                    <ul class="list-disc pl-5 text-gray-300">
+                        {% for diagnosis in session.session_data.possible_diagnoses %}
+                        <li>{{ diagnosis.condition }} (Likelihood: {{ diagnosis.likelihood }})</li>
+                        {% endfor %}
+                    </ul>
+
+                    <h3 class="text-lg text-blue-400 font-semibold mt-4">History of Present Illness:</h3>
+                    <p><strong>Onset:</strong> {{ session.session_data.history_of_present_illness.onset }}</p>
+                    <p><strong>Duration:</strong> {{ session.session_data.history_of_present_illness.duration }}</p>
+                    <p><strong>Severity:</strong> {{ session.session_data.history_of_present_illness.severity }}</p>
+
+                    <h3 class="text-lg text-blue-400 font-semibold mt-4">Associated Symptoms:</h3>
+                    <ul class="list-disc pl-5 text-gray-300">
+                        {% for symptom in session.session_data.history_of_present_illness.associated_symptoms %}
+                        <li>{{ symptom }}</li>
+                        {% endfor %}
+                    </ul>
+
+                    <h3 class="text-lg text-blue-400 font-semibold mt-4">Additional Notes:</h3>
+                    <ul class="list-disc pl-5 text-gray-300">
+                        {% for note in session.session_data.history_of_present_illness.additional_notes %}
+                        <li>{{ note }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Notes form -->
+{#            <form method="POST" action="{% url 'submit_notes' session.id %}">#}
+            <form>
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label for="notes" class="block text-blue-300 font-semibold mb-2">Add Notes:</label>
+                    <textarea id="notes" name="notes" rows="5" class="w-full bg-gray-800 text-gray-300 p-4 rounded-lg focus:outline-none focus:ring focus:border-blue-300">{{ session.notes }}</textarea>
+                </div>
+                <div class="text-right">
+                    <button type="submit" class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-400 transition duration-300">Submit Notes</button>
+                </div>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

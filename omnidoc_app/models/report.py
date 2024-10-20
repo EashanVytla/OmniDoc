@@ -6,8 +6,6 @@ class Report(models.Model):
     session = models.OneToOneField('Session', on_delete=models.CASCADE)  # Required, one-to-one relationship with Session model
     report_data = models.JSONField()  # Required, stores the report data as a JSON object
     generated_at = models.DateTimeField()  # Required, date and time when the report was generated
-    doctor_reviewed = models.BooleanField(default=False)  # Tracks whether the report has been reviewed by a doctor
-    notes = models.TextField(blank=True, null=True)  # Optional, additional notes by a doctor or assistant
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
