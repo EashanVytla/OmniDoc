@@ -24,7 +24,7 @@ from .voice_control.voice_to_wav import get_voice_to_wav
 from .voice_control.wav_interpreter import transcribe_audio
 import os
 
- def start_recording(request):
+def start_recording(request):
      if request.method == 'POST':
          # Define the file paths
          wav_file = "data/output.wav"
