@@ -45,6 +45,11 @@ def start_recording(request):
 
         json_res = llm_chat.receive_data(transcribed_text)
 
+        try:
+            os.system("afplay speech.mp3")
+        except Exception as e:
+            print(e)
+
         if json_res["state"] == 1:
             return JsonResponse({"question": "You have completed the screening. Thank you for your time!"})
         

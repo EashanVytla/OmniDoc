@@ -9,6 +9,7 @@ import os
 import json
 import socket
 from openai import OpenAI
+from omnidoc_app.models import Session
 
 load_dotenv()
 
@@ -49,6 +50,8 @@ question_prompt = ChatPromptTemplate.from_template(
     "This is the list of keys\n{input}\n"
     "Make this screening as a very natural conversation, with fluid transitions between each question you ask.\n"
     "This is what has been said so far in the current conversation: {context}"
+    "DO NOT SAY 'Chatbot question' or question."
+    "No need to be expicit or too verbose about restating my previous answer. Have a bit of a follow up response, but quickly move into the next quesiton."
 )
 
 read_answer = ChatPromptTemplate.from_template(
@@ -151,8 +154,8 @@ def receive_data(user_input):
     
         key, bullets = parse_output(answer_output)
         if key in flattened:
-            print(f"DEBUG: Updating {key}: {bullets}")
-            str = f"Updating {key}: {bullets.strip}"
+            print(f"DEBUG: Updated {key}: {bullets}")
+            str = f"Updating {key}: {bullets}"
             flattened[key] = bullets
     
         clarification = check_clar.invoke(answer_output)
@@ -165,13 +168,16 @@ def receive_data(user_input):
             print("CLARIFICATION")
             question = clarification_chain.invoke({"clarification": clarification, "user_input": user_input, "question": question})
     else:
-        str = "Generating first question..."
+        str = "Asked first question..."
         question = question_chain.invoke({"input": json_str, "context": chat_history})
 
     if any(value == "None" for value in flattened.values()):
         state = 0
     else:
         state = 1
+        question = "You have completed the screening. Thank you for your time!"
+
+    print(state)
 
     response = client.audio.speech.create(
         model="tts-1",
@@ -183,7 +189,7 @@ def receive_data(user_input):
 
     return {
         "status": "success",
-        "question": question,
+        "question": str,
         "state": state
     }
 

@@ -4,12 +4,7 @@
     "primary_complaint": "Sore throat"
   },
   "history_of_present_illness": {
-    "onset": "3 days ago",
-    "additional_symptoms": [
-      "No ear pain or difficulty breathing reported.",
-      "No recent travel history.",
-      "No known sick contacts or exposure to COVID-19."
-    ]
+    "onset": "3 days ago"
   },
   "medical_history": {
     "past_conditions": [
@@ -18,7 +13,6 @@
     ]
   },
   "medications": {
-      "name": "Acetaminophen"
+    "medication_name": "Acetaminophen"
   }
 }
-  
