@@ -43,7 +43,12 @@ def start_recording(request):
             output_json_file
         )
 
-        return JsonResponse(llm_chat.receive_data(transcribed_text))
+        json_res = llm_chat.receive_data(transcribed_text)
+
+        if json_res["state"] == 1:
+            return JsonResponse({"question": "You have completed the screening. Thank you for your time!"})
+        
+        return JsonResponse(json_res)
         # return JsonResponse({'transcription': transcribed_text})
 
     return JsonResponse({'error': 'Invalid request method'}, status=400)

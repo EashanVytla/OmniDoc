@@ -167,6 +167,8 @@ def receive_data(user_input):
     else:
         state = 1
 
+    print(state)
+
     return {
         "status": "success",
         "question": question,

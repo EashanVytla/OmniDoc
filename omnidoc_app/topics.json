@@ -15,18 +15,10 @@
     "past_conditions": [
       "No known chronic conditions",
       "No history of tonsillitis or frequent sore throats"
-    ],
-    "immunizations": [
-      "Up-to-date",
-      "COVID-19 vaccination"
     ]
   },
-  "medications": [
-    {
-      "name": "Acetaminophen",
-      "dosage": "OTC",
-      "usage_reason": "Fever relief"
-    }
-  ],
+  "medications": {
+      "name": "Acetaminophen"
+  }
 }
   
