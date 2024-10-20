@@ -44,6 +44,11 @@ document.getElementById('startRecording').addEventListener('click', function() {
         const transcriptionDiv = document.getElementById('transcription');
         transcriptionDiv.textContent = data.question;
     })
+    .then(_ => {
+        let audio = new Audio(speech.mp3)
+
+        audio.play()
+    })
     .catch(error => {
         console.error('Error:', error);
         animationElement.classList.add("hidden");
