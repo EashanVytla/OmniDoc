@@ -5,7 +5,7 @@ An omnimodal AI assistant to streamline the diagnosis of generic illness symptom
 
 ---
 
-# Django Project Setup Instructions
+# Django Project Setup Guide
 
 ## Prerequisites
 
@@ -17,12 +17,3 @@ Make sure you have the following installed:
 
 ---
 
-## Project Setup Guide
-
-### 1. Clone the Repository
-
-To get started, clone this repository to your local machine:
-
-```bash
-git clone <repository-url>
-cd <repository-name>
