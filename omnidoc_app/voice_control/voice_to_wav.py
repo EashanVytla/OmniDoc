@@ -2,7 +2,7 @@ import pyaudio
 import wave
 import webrtcvad
 
-def get_voice_to_wav(filename="data/output.wav", silence_duration=1.5):
+def get_voice_to_wav(filename="output.wav", silence_duration=1.5):
     """
     Record audio from the microphone and save it as a WAV file using Voice Activity Detection (VAD).
 
