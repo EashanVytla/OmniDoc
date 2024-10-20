@@ -42,7 +42,7 @@ document.getElementById('startRecording').addEventListener('click', function() {
 
         // Show transcription in the UI (if available)
         const transcriptionDiv = document.getElementById('transcription');
-        transcriptionDiv.textContent = data.transcription;
+        transcriptionDiv.textContent = data.question;
     })
     .catch(error => {
         console.error('Error:', error);
