@@ -8,12 +8,14 @@ from django.views.decorators.csrf import csrf_exempt
 import os
 import json
 import socket
+from openai import OpenAI
 
 load_dotenv()
 
 openai_key = os.getenv('OPENAI_API_KEY')
 
 model = ChatOpenAI(model="gpt-4o-mini")
+client = OpenAI()
 
 with open('omnidoc_app/topics.json', 'r') as json_file:
     template_dict = json.load(json_file)
@@ -139,6 +141,8 @@ def receive_data(user_input):
     print(json_str)
 
     chat_history += "Chatbot Question: " + question + "\n"
+
+    str = ""
     
     if question != "":
         answer_output = answer_chain.invoke({"user_input": user_input, "question": question})
@@ -148,6 +152,7 @@ def receive_data(user_input):
         key, bullets = parse_output(answer_output)
         if key in flattened:
             print(f"DEBUG: Updating {key}: {bullets}")
+            str = f"Updating {key}: {bullets.strip}"
             flattened[key] = bullets
     
         clarification = check_clar.invoke(answer_output)
@@ -160,6 +165,7 @@ def receive_data(user_input):
             print("CLARIFICATION")
             question = clarification_chain.invoke({"clarification": clarification, "user_input": user_input, "question": question})
     else:
+        str = "Generating first question..."
         question = question_chain.invoke({"input": json_str, "context": chat_history})
 
     if any(value == "None" for value in flattened.values()):
@@ -167,7 +173,13 @@ def receive_data(user_input):
     else:
         state = 1
 
-    print(state)
+    response = client.audio.speech.create(
+        model="tts-1",
+        voice="alloy",
+        input=question
+        )
+
+    response.stream_to_file("speech.mp3")
 
     return {
         "status": "success",
