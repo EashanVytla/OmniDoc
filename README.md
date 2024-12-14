@@ -1,4 +1,4 @@
-# OmniDoc - Hack OHI/O 2024 - 1st place
+# OmniDoc - Hack OHI/O 2024, 1st place
 <p align="center">
   <img src="omnidoc_logo.png" />
 </p>
