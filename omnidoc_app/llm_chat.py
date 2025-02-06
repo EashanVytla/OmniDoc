@@ -172,6 +172,7 @@ def receive_data(user_input):
         question = question_chain.invoke({"input": json_str, "context": chat_history})
 
     if any(value == "None" for value in flattened.values()):
+    # if False:
         state = 0
     else:
         state = 1
@@ -190,7 +191,10 @@ def receive_data(user_input):
     return {
         "status": "success",
         "question": str,
-        "state": state
+        "state": state,
+        "first_name": flattened["first_name"],
+        "last_name": flattened["last_name"],
+        "json": json_str
     }
 
 def docs2str(docs, title="Document"):
