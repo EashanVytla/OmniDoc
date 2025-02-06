@@ -1,6 +1,6 @@
 import pyaudio
 import wave
-import webrtcvad
+# import webrtcvad
 
 def get_voice_to_wav(filename="output.wav", silence_duration=1.5):
     """
@@ -34,7 +34,7 @@ def get_voice_to_wav(filename="output.wav", silence_duration=1.5):
     while True:
         data = stream.read(CHUNK)
         frames.append(data)
-        
+
         # Use the webrtcvad library to check for speech
         is_speech = vad.is_speech(data, RATE)
 

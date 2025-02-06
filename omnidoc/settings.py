@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+import dj_database_url
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -78,14 +79,9 @@ WSGI_APPLICATION = "omnidoc.wsgi.application"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'postgres.rekthcibaxrpmbdstrcu',
-        'PASSWORD': os.getenv('SUPABASE_PASSWORD'),
-        'HOST': 'aws-0-us-east-2.pooler.supabase.com',
-        'PORT': '6543',
-    }
+    "default": dj_database_url.config(
+        default=os.getenv("SUPABASE_DATABASE_URL"), conn_max_age=600
+    )
 }
 
 # Password validation

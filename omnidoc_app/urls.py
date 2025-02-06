@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import main_view, doctor_patient_list_view, doctor_session_view, doctor_session_detail
+from .views import main_view, doctor_patient_list_view, doctor_session_view, doctor_session_detail, start_recording
 
 urlpatterns = [
     path('main/', main_view, name='main'),  # URL is handled in the app-level urls.py
