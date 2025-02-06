@@ -14,6 +14,7 @@ import requests
 from django.views.decorators.csrf import csrf_exempt
 from . import llm_chat
 import json
+import uuid
 
 
 def main_view(request):
@@ -85,6 +86,11 @@ def start_recording(request):
             print(e)
 
         if json_res["state"] == 1:
+            name = json_res['name'].split(' ')
+            Session.objects.create(
+                patient=Patient.objects.filter(first_name=name[0], last_name=name[1]).first(),
+                session_data=json.dump(json_res)
+            )
             return JsonResponse({"question": "You have completed the screening. Thank you for your time!"})
         
         return JsonResponse(json_res)
