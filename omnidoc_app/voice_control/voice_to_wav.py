@@ -1,6 +1,6 @@
 import pyaudio
 import wave
-# import webrtcvad
+import webrtcvad
 
 def get_voice_to_wav(filename="output.wav", silence_duration=1.5):
     """
