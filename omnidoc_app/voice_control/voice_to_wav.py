@@ -1,3 +1,5 @@
+import os 
+import sys
 import pyaudio
 import wave
 import webrtcvad
