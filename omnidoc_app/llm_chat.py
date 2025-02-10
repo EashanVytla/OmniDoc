@@ -10,6 +10,7 @@ import json
 import socket
 from openai import OpenAI
 from omnidoc_app.models import Session
+import time
 
 load_dotenv()
 
@@ -134,6 +135,7 @@ process_clarification_chain = (
 
 question = ""
 chat_history = ""
+times = {"LLM-1": 0.0, "LLM-2": 0.0, "LLM-3": 0.0, "Whisper": 0.0}
 
 def receive_data(user_input):
     global chat_history
@@ -141,24 +143,31 @@ def receive_data(user_input):
     global flattened
     json_str = json.dumps(flattened, indent=2)
 
-    print(json_str)
-
     chat_history += "Chatbot Question: " + question + "\n"
 
     str = ""
     
     if question != "":
+        times["LLM-1"] = time.time()
         answer_output = answer_chain.invoke({"user_input": user_input, "question": question})
 
+        times["LLM-1"] -= time.time()
+
         chat_history += "User Answer: " + answer_output + "\n"
-    
+
         key, bullets = parse_output(answer_output)
         if key in flattened:
             print(f"DEBUG: Updated {key}: {bullets}")
             str = f"Updating {key}: {bullets}"
             flattened[key] = bullets
     
+        times["LLM-2"] = time.time()
+        
         clarification = check_clar.invoke(answer_output)
+
+        times["LLM-2"] -= time.time()
+
+        times["LLM-3"] = time.time()
 
         #if clarification.strip() == "NO_CLARIFICATION_NEEDED":
         if True:
@@ -167,10 +176,12 @@ def receive_data(user_input):
         else:
             print("CLARIFICATION")
             question = clarification_chain.invoke({"clarification": clarification, "user_input": user_input, "question": question})
+
+        times["LLM-3"] -= time.time()
     else:
         str = "Asked first question..."
         question = question_chain.invoke({"input": json_str, "context": chat_history})
-
+    
     if any(value == "None" for value in flattened.values()):
     # if False:
         state = 0
@@ -178,15 +189,18 @@ def receive_data(user_input):
         state = 1
         question = "You have completed the screening. Thank you for your time!"
 
-    print(state)
-
+    times["Whisper"] = time.time()
     response = client.audio.speech.create(
         model="tts-1",
         voice="alloy",
         input=question
         )
+    times["Whisper"] -= time.time()
+    
 
     response.stream_to_file("speech.mp3")
+
+    print(times)
 
     return {
         "status": "success",

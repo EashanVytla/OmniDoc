@@ -13,39 +13,18 @@ from django.views.decorators.csrf import csrf_exempt
 from . import llm_chat
 import json
 
-def main_view(request):
-    return render(request, 'main.html')  
-
 from django.http import JsonResponse
 from .voice_control.voice_to_wav import get_voice_to_wav
 from .voice_control.wav_interpreter import transcribe_audio
 from dotenv import load_dotenv
 import os
 
-# def start_recording(request):
-#     if request.method == 'POST':
-#         # Define the file paths
-#         wav_file = "data/output.wav"
-#         output_file = "data/output_transcription.txt"
-#         output_json_file = "data/output_transcription.json"
-
-#         # Start recording audio and save to file
-#         get_voice_to_wav(wav_file, silence_duration=0.5)
-
-#         load_dotenv()
-#         # Transcribe the audio
-#         openai_key = os.getenv('OPENAI_API_KEY')
-#         transcribed_text = transcribe_audio(
-#             wav_file,
-#             openai_key,
-#             output_file,
-#             output_json_file
-#         )
-
-#         # Return the transcription as a response
-#         return JsonResponse({'transcription': transcribed_text})
-
-#     return JsonResponse({'error': 'Invalid request method'}, status=400)
+def main_view(request, patient_id=""):
+    if patient_id:
+        return render(request, 'main.html')
+    else:
+        patient_id = ""
+        return render(request, 'patient_not_found.html')  
 
 @csrf_exempt
 def send_to_llm(transcribed):
@@ -54,10 +33,8 @@ def send_to_llm(transcribed):
     response = requests.post(url, json=data, verify=False)
     return response.json()
 
-#send_to_llm("")
-
 @csrf_exempt
-def start_recording(request):
+def start_recording(request, patient_id):
     if request.method == 'POST':
         # Define the file paths
         wav_file = "./output.wav"
@@ -91,9 +68,11 @@ def start_recording(request):
         except Exception as e:
             print(f"Error playing audio: {e}")
 
+        print(f"uuid: {patient_id}")
+
         if json_res["state"] == 1:
             Session.objects.create(
-                patient=Patient.objects.filter(first_name=json_res["first_name"], last_name=json_res["last_name"]).first(),
+                patient=Patient.objects.filter(id=patient_id).first(),
                 session_data=json_res["json"]
             )
             return JsonResponse({"question": "You have completed the screening. Thank you for your time!"})
