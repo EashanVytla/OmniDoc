@@ -16,7 +16,8 @@ load_dotenv()
 
 openai_key = os.getenv('OPENAI_API_KEY')
 
-model = ChatOpenAI(model="gpt-4o-mini")
+answer_model = ChatOpenAI(model="gpt-4o")
+question_model = ChatOpenAI(model="gpt-4o")
 client = OpenAI()
 
 with open('omnidoc_app/topics.json', 'r') as json_file:
@@ -40,29 +41,68 @@ flattened = flatten_dict(template_dict)
 #memory = ConversationBufferMemory()
 
 question_prompt = ChatPromptTemplate.from_template(
-    "System"
-    "You are an AI assistant with the purpose of screening someone who has scheduled an appointment with a doctor."
-    "This person isn't aware that they are talking to a chatbot, so don't give them information on what you are thinking internally."
-    "Your task is to ask this patient general screening questions, to get information regarding the patient's symptoms, demographics, and more."
-    "Essentially, you are an AI nurse."
-    "Given the following schema, your task is to fill out every value for every key in this schema, by asking ONE relevant question per key."
-    "If a key already has a value that is NOT None associated with it, then do not ask a question about that key."
-    "Repeat this until all keys have values associated with them that are not None."
-    "This is the list of keys\n{input}\n"
-    "Make this screening as a very natural conversation, with fluid transitions between each question you ask.\n"
-    "This is what has been said so far in the current conversation: {context}"
-    "DO NOT SAY 'Chatbot question' or question."
-    "No need to be expicit or too verbose about restating my previous answer. Have a bit of a follow up response, but quickly move into the next quesiton."
+    """
+    You are an AI agent responsible for gathering missing information. Your goal is to ask relevant questions to fill in empty fields in the provided JSON state.
+
+    ## Instructions:
+    1. Look at the **state**, which is a JSON string containing all fields. Empty fields need to be filled.
+    2. Use **actions** to ask clear and concise questions that help obtain missing information.
+    3. Refer to the **current trajectory** to maintain context and avoid redundant questions.
+
+    ---
+    ### State (JSON):
+    {state}
+
+    ---
+    ### Actions (Questions asked so far):
+    {current_trajectory}
+
+    ---
+    ### Task:
+    Generate the next best question that will fill in a field that is NONE while ensuring it is relevant and non-redundant.
+    ONCE A FIELD NO LONGER NONE, then DO NOT ASK THAT QUESTION
+    DO NOT ASK A QUESTION THAT IS IN THE SET OF ACTIONS TAKEN SO FAR!
+    THE REWARDS OF YOUR TRAJECTORY IS SCORED ON HOW MANY FIELDS YOU ARE ABLE TO UPDATE WITH A QUESTION.
+    """
 )
 
 read_answer = ChatPromptTemplate.from_template(
-    "System"
-    #"Chatbot question: {initial_output}"
-    "Read the users response: {answer}"
-    "List of Keys: {keys}"
-    "Give me the key from the list of keys that fits this response most and important points from the response in a list of bullet points"
-    "You don't need to write complete sentences for the bullet points"
-    "FOLLOW THIS FORMAT FOR THE OUTPUT! THIS IS IMPORTANT!: [Key]: [bullet 1], [bullet 2]..."
+    """
+    You are an AI system that analyzes user responses and categorizes them based on a provided list of keys. Your task is to:
+    
+    1. Read the user's response.
+    2. Identify the most relevant key from the given list.
+    3. Extract important points from the response as bullet points.
+    
+    ---
+    **User Response:**  
+    {answer}
+    
+    **List of Keys:**  
+    {keys}
+    
+    ---
+    **Output Format (Strictly Follow This):**  
+    [Selected Key]: [Bullet Point 1], [Bullet Point 2], [Bullet Point 3]...
+
+    **Reward: **
+    You will be rewarded for giving short bullet points that are medically accurate and professional terminology
+    Here are some EXAMPLES:
+        Answer: "My first name is Eashan"
+        Output: first_name: Eashan
+
+        Answer: "My last name is Vytla"
+        Output: last_name: Vytla
+
+        Answer: "I have had this cough and sore throat for about two weeks"
+        Output: primary_complaint: Cough, Sore Throat**
+
+        Answer: "I had a blood clot in my lungs and I have high blood pressure."
+        Output: past_conditions: Pulmonary Embolism, Hypertension
+    
+    ---
+    **Now, provide the output following the exact format above.**
+    """
 )
 
 clarification_prompt = ChatPromptTemplate.from_template(
@@ -100,67 +140,71 @@ output_parser = StrOutputParser()
 
 question_chain = (RunnablePassthrough()
                 | question_prompt
-                | model
+                | question_model
                 | output_parser
                 )
 
 answer_chain = (RunnableMap({
                     "keys": lambda _: list(flattened.keys()),
-                    "answer": lambda x: x['user_input'],
-                    "initial_output": lambda x: x['question']
+                    "answer": lambda x: x['user_input']
                 })
                 | read_answer
-                | model
+                | answer_model
                 | output_parser
                 )
 
 check_clar = (
     check_clar_prompt
-    | model
+    | answer_model
     | output_parser
 )
 
 clarification_chain = (
     clarification_prompt
-    | model
+    | answer_model
     | output_parser
     | RunnableLambda(lambda x: x if x != "NO_CLARIFICATION_NEEDED" else "")
 )
 
 process_clarification_chain = (
     process_clarification
-    | model
+    | answer_model
     | output_parser
 )
 
-question = ""
-chat_history = ""
 times = {"LLM-1": 0.0, "LLM-2": 0.0, "LLM-3": 0.0, "Whisper": 0.0}
 
-def receive_data(user_input):
-    global chat_history
-    global question
-    global flattened
-    json_str = json.dumps(flattened, indent=2)
-
-    chat_history += "Chatbot Question: " + question + "\n"
+def receive_data(user_input, json_state, traj):
+    if not json_state:
+        json_state = json.dumps(flattened)
+        json_state_dict = flattened
+    else:
+        json_state_dict = json.loads(json_state)
+    question = traj[-1] if len(traj) > 0 else ""
 
     str = ""
+    json_str = ""
     
     if question != "":
+        print(f"User input: {user_input}")
         times["LLM-1"] = time.time()
-        answer_output = answer_chain.invoke({"user_input": user_input, "question": question})
+        answer_output = answer_chain.invoke({"user_input": user_input, "keys": json_state_dict})
+
+        traj += "State transition: " + answer_output + "\n"
 
         times["LLM-1"] -= time.time()
 
-        chat_history += "User Answer: " + answer_output + "\n"
+        # chat_history += "User Answer: " + answer_output + "\n"
 
         key, bullets = parse_output(answer_output)
         if key in flattened:
             print(f"DEBUG: Updated {key}: {bullets}")
             str = f"Updating {key}: {bullets}"
-            flattened[key] = bullets
+            json_state_dict[key] = bullets
     
+
+        json_str = json.dumps(json_state_dict, indent=2)
+
         times["LLM-2"] = time.time()
         
         clarification = check_clar.invoke(answer_output)
@@ -169,20 +213,21 @@ def receive_data(user_input):
 
         times["LLM-3"] = time.time()
 
-        #if clarification.strip() == "NO_CLARIFICATION_NEEDED":
+        # if clarification.strip() == "NO_CLARIFICATION_NEEDED":
         if True:
             print("NO CLARIFICATION")
-            question = question_chain.invoke({"input": json_str, "context": chat_history})
+            question = question_chain.invoke({"state": json_str, "current_trajectory": traj})
         else:
             print("CLARIFICATION")
             question = clarification_chain.invoke({"clarification": clarification, "user_input": user_input, "question": question})
 
         times["LLM-3"] -= time.time()
     else:
+        json_str = json.dumps(json_state_dict, indent=2)
         str = "Asked first question..."
-        question = question_chain.invoke({"input": json_str, "context": chat_history})
+        question = question_chain.invoke({"state": json_str, "current_trajectory": traj})
     
-    if any(value == "None" for value in flattened.values()):
+    if any(value == "None" for value in json_state_dict.values()):
     # if False:
         state = 0
     else:
@@ -202,13 +247,14 @@ def receive_data(user_input):
 
     print(times)
 
+    traj += "Chatbot Question: " + question + "\n"
+
     return {
         "status": "success",
         "question": str,
         "state": state,
-        "first_name": flattened["first_name"],
-        "last_name": flattened["last_name"],
-        "json": json_str
+        "json": json_str,
+        "traj": traj
     }
 
 def docs2str(docs, title="Document"):
@@ -221,6 +267,7 @@ def docs2str(docs, title="Document"):
     return out_str
 
 def parse_output(output):
+    print(output)
     # Split the string into two parts: the key and the list of bullets
     key, bullets_string = output.split(":", 1)  # Split only at the first ':'
     

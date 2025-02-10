@@ -42,7 +42,7 @@ def start_recording(request, patient_id):
         output_json_file = "./output_transcription.json"
 
         # Start recording audio and save to file
-        get_voice_to_wav(wav_file, silence_duration=0.1)
+        get_voice_to_wav(wav_file, silence_duration=1.0)
 
         load_dotenv()
         # Transcribe the audio
@@ -54,7 +54,17 @@ def start_recording(request, patient_id):
             output_json_file
         )
 
-        json_res = llm_chat.receive_data(transcribed_text)
+        data = json.loads(request.body)
+        state = data.get("state", "")
+        traj = data.get("traj", "")
+
+        if not state:
+            state = ""
+
+        if not traj:
+            traj = ""
+
+        json_res = llm_chat.receive_data(transcribed_text, state, traj)
 
         try:
             system = platform.system().lower()

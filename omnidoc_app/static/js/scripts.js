@@ -27,6 +27,9 @@ document
 
     uuid = window.location.pathname.split('/').filter(Boolean).pop();
 
+    state = localStorage.getItem("json")
+    traj = localStorage.getItem("traj")
+
     // Make an AJAX request to trigger the backend recording process
     fetch(`/start-recording/${uuid}/`, {
       method: "POST",
@@ -36,6 +39,8 @@ document
       },
       body: JSON.stringify({
         action: "start_recording",
+        state: state,
+        traj: traj
       }),
     })
       .then((response) => {
@@ -47,6 +52,9 @@ document
       .then((data) => {
         console.log("Recording completed:", data);
         animationElement.classList.add("hidden");
+
+        localStorage.setItem("json", data.json)
+        localStorage.setItem("traj", data.traj)
 
         // Show transcription in the UI with fade-in effect
         const transcriptionDiv = document.getElementById("transcription");
