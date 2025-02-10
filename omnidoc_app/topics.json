@@ -1,7 +1,5 @@
 {
   "patient_info": {
-    "first_name": "John",
-    "last_name": "Doe",
     "primary_complaint": "Sore throat"
   },
   "history_of_present_illness": {
