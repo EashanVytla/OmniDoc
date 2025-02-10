@@ -1,7 +1,7 @@
 document
   .getElementById("startRecording")
   .addEventListener("click", function () {
-    console.log("Recording button clicked. Starting audio recording...");
+    console.log("Recording button clicked. Starting audio recording..");
 
     // Show recording animation (optional)
     const animationElement = document.getElementById("animationElement");
@@ -25,8 +25,10 @@ document
       return;
     }
 
+    uuid = window.location.pathname.split('/').filter(Boolean).pop();
+
     // Make an AJAX request to trigger the backend recording process
-    fetch("/start-recording/", {
+    fetch(`/start-recording/${uuid}/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
