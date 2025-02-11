@@ -45,7 +45,7 @@ def start_recording(request, session_id):
         output_json_file = "./output_transcription.json"
 
         # Start recording audio and save to file
-        get_voice_to_wav(wav_file, silence_duration=1.0)
+        get_voice_to_wav(wav_file, silence_duration=1.5)
 
         load_dotenv()
         # Transcribe the audio

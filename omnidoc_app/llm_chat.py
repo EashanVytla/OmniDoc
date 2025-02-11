@@ -205,13 +205,13 @@ def receive_data(user_input, json_state, traj):
 
         json_str = json.dumps(json_state_dict, indent=2)
 
-        times["LLM-2"] = time.time()
+        # times["LLM-2"] = time.time()
         
-        clarification = check_clar.invoke(answer_output)
+        # clarification = check_clar.invoke(answer_output)
 
-        times["LLM-2"] -= time.time()
+        # times["LLM-2"] -= time.time()
 
-        times["LLM-3"] = time.time()
+        # times["LLM-3"] = time.time()
 
         # if clarification.strip() == "NO_CLARIFICATION_NEEDED":
         if True:

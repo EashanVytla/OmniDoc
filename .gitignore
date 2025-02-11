@@ -10,3 +10,7 @@ __pycache__/
 db.sqlite3
 .env
 .idea
+.txt
+.json
+.wav
+.mp3
