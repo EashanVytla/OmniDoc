@@ -18,23 +18,26 @@ from .voice_control.voice_to_wav import get_voice_to_wav
 from .voice_control.wav_interpreter import transcribe_audio
 from dotenv import load_dotenv
 import os
+from django.shortcuts import get_object_or_404, render
+from django.http import Http404
+from .models import Session
 
-def main_view(request, patient_id=""):
-    if patient_id:
-        return render(request, 'main.html')
-    else:
-        patient_id = ""
-        return render(request, 'patient_not_found.html')  
+def main_view(request, session_id=None):
+    if session_id is None:
+        return render(request, 'session_not_found.html', status=404)
+
+    session = get_object_or_404(Session, id=session_id)
+    return render(request, 'session.html', {'session': session})
 
 @csrf_exempt
 def send_to_llm(transcribed):
-    url = "http://localhost:8000/receive-data/"
+    url = f"{os.getenv('ROOT_URL')}receive-data/"
     data = {'transcription': transcribed}
     response = requests.post(url, json=data, verify=False)
     return response.json()
 
 @csrf_exempt
-def start_recording(request, patient_id):
+def start_recording(request, session_id):
     if request.method == 'POST':
         # Define the file paths
         wav_file = "./output.wav"
@@ -78,14 +81,16 @@ def start_recording(request, patient_id):
         except Exception as e:
             print(f"Error playing audio: {e}")
 
-        print(f"uuid: {patient_id}")
-
         if json_res["state"] == 1:
-            Session.objects.create(
-                patient=Patient.objects.filter(id=patient_id).first(),
-                session_data=json_res["json"]
-            )
-            return JsonResponse({"question": "You have completed the screening. Thank you for your time!"})
+            try:
+                # Find the existing session
+                session = Session.objects.get(id=session_id)
+                # Update the session data
+                session.session_data = json_res["json"]
+                session.save()
+                return JsonResponse({"question": "You have completed the screening. Thank you for your time!"})
+            except Session.DoesNotExist:
+                return JsonResponse({'error': 'Session not found'}, status=404)
         
         return JsonResponse(json_res)
         # return JsonResponse({'transcription': transcribed_text})
